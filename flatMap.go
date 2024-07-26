@@ -57,3 +57,23 @@ func FlatMapWithError[T any, R any](callback func(T) ([]R, error)) func([]T) ([]
 		return result, nil
 	}
 }
+
+func FlatMapWithErrorAndTransform[T any, R any, Z any](callback func(T) ([]R, error),
+	transform func(T, R) Z) func([]T) ([]Z, error) {
+	return func(xs []T) ([]Z, error) {
+		result := []Z{}
+
+		for _, x := range xs {
+			targetValues, err := callback(x)
+			transformedValues := Map(func(targetValue R) Z {
+				return transform(x, targetValue)
+			})(targetValues)
+			if err != nil {
+				return make([]Z, 0), err
+			}
+			result = append(result, transformedValues...)
+		}
+
+		return result, nil
+	}
+}
