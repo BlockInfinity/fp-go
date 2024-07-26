@@ -41,3 +41,19 @@ func FlatMapWithSlice[T any, R any](callback func(T, int, []T) []R) func([]T) []
 		return result
 	}
 }
+
+func FlatMapWithError[T any, R any](callback func(T) ([]R, error)) func([]T) ([]R, error) {
+	return func(xs []T) ([]R, error) {
+		result := []R{}
+
+		for _, x := range xs {
+			targetValues, err := callback(x)
+			if err != nil {
+				return make([]R, 0), err
+			}
+			result = append(result, targetValues...)
+		}
+
+		return result, nil
+	}
+}
