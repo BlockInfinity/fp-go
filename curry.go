@@ -1,5 +1,13 @@
 package fp
 
+func Curry1[T1, R any](fn func(T1) R) func(T1) func() R {
+	return func(t1 T1) func() R {
+		return func() R {
+			return fn(t1)
+		}
+	}
+}
+
 // Allow to transform a function that receives 2 params in a sequence of unary functions
 func Curry2[T1, T2, R any](fn func(T1, T2) R) func(T1) func(T2) R {
 	return func(t1 T1) func(T2) R {
