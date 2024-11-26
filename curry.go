@@ -344,3 +344,11 @@ func Curry16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T
 		}
 	}
 }
+
+func Curry2WithError[T1, T2, R any](fn func(T1, T2) (R, error)) func(T1) func(T2) (R, error) {
+	return func(t1 T1) func(T2) (R, error) {
+		return func(t2 T2) (R, error) {
+			return fn(t1, t2)
+		}
+	}
+}
