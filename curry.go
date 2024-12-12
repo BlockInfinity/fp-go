@@ -368,3 +368,39 @@ func Curry2WithError[T1, T2, R any](fn func(T1, T2) (R, error)) func(T1) func(T2
 		}
 	}
 }
+
+func Curry3WithError[T1, T2, T3, R any](fn func(T1, T2, T3) (R, error)) func(T1) func(T2) func(T3) (R, error) {
+	return func(t1 T1) func(T2) func(T3) (R, error) {
+		return func(t2 T2) func(T3) (R, error) {
+			return func(t3 T3) (R, error) {
+				return fn(t1, t2, t3)
+			}
+		}
+	}
+}
+
+func Curry4WithError[T1, T2, T3, T4, R any](fn func(T1, T2, T3, T4) (R, error)) func(T1) func(T2) func(T3) func(T4) (R, error) {
+	return func(t1 T1) func(T2) func(T3) func(T4) (R, error) {
+		return func(t2 T2) func(T3) func(T4) (R, error) {
+			return func(t3 T3) func(T4) (R, error) {
+				return func(t4 T4) (R, error) {
+					return fn(t1, t2, t3, t4)
+				}
+			}
+		}
+	}
+}
+
+func Curry5WithError[T1, T2, T3, T4, T5, R any](fn func(T1, T2, T3, T4, T5) (R, error)) func(T1) func(T2) func(T3) func(T4) func(T5) (R, error) {
+	return func(t1 T1) func(T2) func(T3) func(T4) func(T5) (R, error) {
+		return func(t2 T2) func(T3) func(T4) func(T5) (R, error) {
+			return func(t3 T3) func(T4) func(T5) (R, error) {
+				return func(t4 T4) func(T5) (R, error) {
+					return func(t5 T5) (R, error) {
+						return fn(t1, t2, t3, t4, t5)
+					}
+				}
+			}
+		}
+	}
+}
