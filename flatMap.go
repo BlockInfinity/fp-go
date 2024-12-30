@@ -86,19 +86,20 @@ func FlatMapWithErrorParallel[T any, R any](callback func(T) ([]R, error)) func(
 		type result struct {
 			values []R
 			err    error
+			index  int
 		}
 
 		results := make(chan result, len(xs))
 		var wg sync.WaitGroup
 
 		// Start goroutines for parallel execution.
-		for _, x := range xs {
+		for i, x := range xs {
 			wg.Add(1)
-			go func(x T) {
+			go func(i int, x T) {
 				defer wg.Done()
 				res, err := callback(x)
-				results <- result{values: res, err: err}
-			}(x)
+				results <- result{values: res, err: err, index: i}
+			}(i, x)
 		}
 
 		// Close the results channel when all goroutines complete.
@@ -108,12 +109,18 @@ func FlatMapWithErrorParallel[T any, R any](callback func(T) ([]R, error)) func(
 		}()
 
 		// Collect results.
-		finalResults := []R{}
+		orderedResults := make([][]R, len(xs))
 		for r := range results {
 			if r.err != nil {
 				return nil, r.err
 			}
-			finalResults = append(finalResults, r.values...)
+			orderedResults[r.index] = r.values
+		}
+
+		// Flatten the ordered results.
+		finalResults := []R{}
+		for _, values := range orderedResults {
+			finalResults = append(finalResults, values...)
 		}
 
 		return finalResults, nil
