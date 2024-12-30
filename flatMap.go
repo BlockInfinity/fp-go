@@ -1,5 +1,7 @@
 package fp
 
+import "sync"
+
 // Calls a defined callback function on each element of an array. Then, flattens the result into a new array. This is identical to a map followed by flat with depth 1.
 func FlatMap[T any, R any](callback func(T) []R) func([]T) []R {
 	return func(xs []T) []R {
@@ -75,5 +77,45 @@ func FlatMapWithErrorAndTransform[T any, R any, Z any](callback func(T) ([]R, er
 		}
 
 		return result, nil
+	}
+}
+
+func FlatMapWithErrorParallel[T any, R any](callback func(T) ([]R, error)) func([]T) ([]R, error) {
+	return func(xs []T) ([]R, error) {
+		// Result channel for collecting results.
+		type result struct {
+			values []R
+			err    error
+		}
+
+		results := make(chan result, len(xs))
+		var wg sync.WaitGroup
+
+		// Start goroutines for parallel execution.
+		for _, x := range xs {
+			wg.Add(1)
+			go func(x T) {
+				defer wg.Done()
+				res, err := callback(x)
+				results <- result{values: res, err: err}
+			}(x)
+		}
+
+		// Close the results channel when all goroutines complete.
+		go func() {
+			wg.Wait()
+			close(results)
+		}()
+
+		// Collect results.
+		finalResults := []R{}
+		for r := range results {
+			if r.err != nil {
+				return nil, r.err
+			}
+			finalResults = append(finalResults, r.values...)
+		}
+
+		return finalResults, nil
 	}
 }
