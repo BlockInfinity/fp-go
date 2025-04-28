@@ -101,3 +101,15 @@ func MapWithErrorParallel[T any, R any](callback func(T) (R, error)) func([]T) (
 		return finalResults, nil
 	}
 }
+
+func MapParallel[T any, R any](callback func(T) R) func([]T) []R {
+	return func(xs []T) []R {
+		// Wrap the callback to match MapWithErrorParallel's expected signature.
+		wrappedCallback := func(x T) (R, error) {
+			return callback(x), nil
+		}
+
+		results, _ := MapWithErrorParallel(wrappedCallback)(xs)
+		return results
+	}
+}
